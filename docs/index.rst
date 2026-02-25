@@ -10,7 +10,7 @@ Welcome to HyperImmunISE's documentation!
 
 .. note::
 
-   This project is under active development.
+   This project is under development.
 
 Contents
 ========
