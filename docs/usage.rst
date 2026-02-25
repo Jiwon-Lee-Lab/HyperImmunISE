@@ -4,11 +4,11 @@ Usage
 Installing HyperImmunISE and Dependents
 ---------------------------------------
 
-To use HyperImmunISE, first pull from git: https://git.dartmouth.edu/f00439r/hyperimmunise/
+To use HyperImmunISE, first pull from git: https://github.com/Jiwon-Lee-Lab/HyperImmunISE.git
 
 .. code-block:: console
 
-  $ git clone https://git.dartmouth.edu/f00439r/hyperimmunise
+  $ git clone https://github.com/Jiwon-Lee-Lab/HyperImmunISE.git
 
 HyperImmunISE requires Python 3 (https://www.python.org/) and the following dependencies:
   - _libgcc_mutex=0.1=conda_forge
