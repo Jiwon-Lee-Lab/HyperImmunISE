@@ -81,7 +81,7 @@ Comput. Mol. Sci., 2013) can be downloaded from https://ambermd.org/.
 Amber simulation can be edited based on user needs, the default framework contained here
 assumes that Amber is installed with gpu compatability and a gpu is available for simulations.
 
-Necissary System Architecture
+Necessary System Architecture
 -----------------------------
 
 This script is intended to be run on a computing cluster and is currently written to accommodate 
