@@ -9,9 +9,9 @@ list of all the surface residues if  their SASA > min_SASA, set at
 default to 2.5 Å
 
 based on: http://pymolwiki.org/index.php/FindSurfaceResidues
-and modified to use fresasa module to find SASA of residues
+and modified to use freesasa module to find SASA of residues
 
-freesasa is used for SASA calcuation and cited here:
+freesasa is used for SASA calculation and cited here:
 
 Simon Mitternacht (2016) FreeSASA: An open source C library for solvent accessible surface area calculations. F1000Research 5:189. (doi: 10.12688/f1000research.7931.1)
 
@@ -51,7 +51,7 @@ map_dict: nested dictionary of {chain: {resnum: index}}
 
 jwalk_map: dictionary that maps old pdb file numbering to new pdb file numbering::
 
-   {chain: {original pdb num: jwalk pbd id}}
+   {chain: {original pdb num: jwalk pdb id}}
 
 consecutive_residues(resMap)
 ----------------------------
@@ -146,7 +146,7 @@ allSASD(reslist, jwalk_pdbfile, Jwalk_path, jwalk_map)
 This program uses Jwalk, cited here:
 
 Sinnott et al., Combining Information from Crosslinks and Monolinks in the Modeling
-of Protein Structures, Sturcture (2020), https://doi.org/10/1016/j.str.2020.05.012
+of Protein Structures, Structure (2020), https://doi.org/10/1016/j.str.2020.05.012
 
 The Importance of Non-accessible Crosslinks and Solvent Accessible Surface Distance in Modeling Proteins with Restraints From Crosslinking Mass Spectrometry.
 J Bullock, J Schwab, K Thalassinos, M Topf. Mol Cell Proteomics. 15, 2491–2500, 2016

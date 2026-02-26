@@ -1,4 +1,4 @@
-Toubleshooting and FAQs
+Troubleshooting and FAQs
 =======================
 
 I am getting an "open: can't stat file" error
@@ -24,7 +24,7 @@ Does HyperImmunISE support multi-chain analysis?
 
 The current implementation of HyperImmunISE does not support generating structures with multiple chains.
 
-Why should I model glycans using pyRostta?
+Why should I model glycans using pyRosetta?
 ------------------------------------------
 
 We highly recommend allowing pyRosetta to model glycans for the designs. This increases the computational time significantly
@@ -43,7 +43,7 @@ What value should I select for defining the desired number of glycans?
 This value is intended to vary from case to case. The algorithm will require a minimum of 10 angstroms of spacing between glycans and thus the
 density of glycans is inherently limited by this. In our experience, molecules of ~25-50kDa can be adequately covered by between 10-20 glycans.
 
-There is not a PDB sturcture available for my target, can I still use this program?
+There is not a PDB structure available for my target, can I still use this program?
 -----------------------------------------------------------------------------------
 
 Unfortunately, HyperImmunISE requires a PDB to model glycans. Tools including AlphaFold (https://deepmind.google/technologies/alphafold/) and 
@@ -52,7 +52,7 @@ Rosetta (https://www.rosettacommons.org/software) can predict these structures a
 Can I run HyperImmunISE locally?
 --------------------------------
 
-HyperImmunISE can be run on a local Linux system, however, due to the computational power required for this analysis, this is not reccomended.
+HyperImmunISE can be run on a local Linux system, however, due to the computational power required for this analysis, this is not recommended.
 
 Can I run Amber simulations without a GPU?
 ------------------------------------------

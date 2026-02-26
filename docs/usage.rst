@@ -1,7 +1,7 @@
 Usage
 =====
 
-Installing HyperImmunISE and Dependents
+Installing HyperImmunISE and Dependencies
 ---------------------------------------
 
 To use HyperImmunISE, first pull from git: https://github.com/Jiwon-Lee-Lab/HyperImmunISE.git
@@ -63,7 +63,7 @@ HyperImmunISE requires Python 3 (https://www.python.org/) and the following depe
       - freesasa==2.1.0
 
 The provided "hyperimmunise.yml" can also be used to directly import the corresponding packages.
-It is reccomended that these are installed into a conda environment.
+It is recommended that these are installed into a conda environment.
 
 Jwalk, a software used to calculate solvent accessible surface distances 
 (Bullock, Joshua Matthew Allen, et al. Molecular & Cellular Proteomics, 2016)
@@ -79,14 +79,14 @@ https://squanderingti.me/blog/2020/10/28/extreme-debugging.html
 Amber, a molecular dynamic simulation tool (R. Salomon-Ferrer, D.A. Case, R.C. Walker. WIREs 
 Comput. Mol. Sci., 2013) can be downloaded from https://ambermd.org/.
 Amber simulation can be edited based on user needs, the default framework contained here
-assumes that Amber is installed with gpu compatability and a gpu is available for simulations.
+assumes that Amber is installed with gpu compatibility and a gpu is available for simulations.
 
 Necessary System Architecture
 -----------------------------
 
 This script is intended to be run on a computing cluster and is currently written to accommodate 
 a CentOS Linux architecture with both CPU and GPU nodes. Other architectures may be compatible
-but have not been tested with this program. It is highly reccomended that this software be run 
+but have not been tested with this program. It is highly recommended that this software be run 
 on a high-performance computing cluster, as the process is memory intensive. 
 
 Designing Constructs with HyperImmunISE
@@ -108,9 +108,9 @@ Constructs are designed by running the 'main.py' script with the following flags
 
 -uncovered_sites <residues number of sites which should remain unblocked by glycans>"99-105,221-228" 
 
--model_glycans <wether Rosetta should model glycans, "Y" or "N"> 
+-model_glycans <whether Rosetta should model glycans, "Y" or "N"> 
 
--pdb_list <name of PDB file, no extension (.pdb) necissary>
+-pdb_list <name of PDB file, no extension (.pdb) necessary>
 
 -path <path to the PDB construct>
 
@@ -131,7 +131,7 @@ An example input is provided below:
 Evaluating HyperImmunISE Constructs in Amber
 --------------------------------------------
 
-With the insallation of Amber, navigate to the installed directory:
+With the installation of Amber, navigate to the installed directory:
 
 .. code-block:: console
 
