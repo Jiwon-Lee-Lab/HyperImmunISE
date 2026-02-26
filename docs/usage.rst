@@ -71,7 +71,7 @@ can be downloaded as part of XLM-Tools (https://github.com/Topf-Lab/XLM-Tools/).
 
 NetNGlyc, a software to predict if a glycosylation sequon will contain a glycan
 (Gupta R, Brunak S. Pac Symp Biocomput., 2002) can be downloaded 
-(https://services.healthtech.dtu.dk/services/NetNGlyc-1.0/). 
+(https://services.healthtech.dtu.dk/services/NetNGlyc-1.0/. If the primary link is unavailable, use https://services.healthtech.dtu.dk/cgi-bin/sw_request?software=netNglyc&version=1.0_copy&packageversion=1.0d&platform=Linux). 
 This software may need to be edited to work on modern operating systems, a guide
 to a hotfix to allow for this can be found here:
 https://squanderingti.me/blog/2020/10/28/extreme-debugging.html
