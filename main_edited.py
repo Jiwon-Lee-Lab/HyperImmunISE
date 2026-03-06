@@ -5,7 +5,8 @@ Created on Thu Mar 23 14:02:19 2023
 
 @author: sara
 
-Updated on Mar 6 2026 @author TY
+Updated on Mar 26 2026 @author TY
+
 """
 from math import sqrt
 import freesasa
@@ -1051,7 +1052,7 @@ def surface_quant(pdb, glycopath, residues, all_surface_res,destination):
     return coverage
 
 
-def coverage_rank(distance_n_atoms, clusters, i, radius = 17.5):
+def coverage_rank(distance_n_atoms, clusters, i, radius=17.5):#250912 edited for sampling
     '''
     PURPOSE: refine possible cluster combinations based on predicted
     coverage -- only high coverage combinations remain 
@@ -1075,51 +1076,49 @@ def coverage_rank(distance_n_atoms, clusters, i, radius = 17.5):
     refined_clusters: dict
     Dictionary of {site number: non overlapping sites} (i.e. combos/clusters)
     with lower-coverage combinations eliminated
-    rows: list
-        Intermediate coverage scoring rows for each cluster:
-        [coverage_fraction, covered_count, total_surface_residues,
-        radius_A, num_sites_in_combo, sites_str]
     '''
+    """
+    Refine possible cluster combinations based on predicted coverage.
+    Returns:
+        refined_clusters: list[list[str]]  # the top-i combos by coverage
+        rows: list[list[Any]]             # every combo scored in this call
+               [coverage_fraction, covered_count, total_surface_residues,
+                radius_A, num_sites_in_combo, sites_str]
+    """
     refined_clusters = []
+    ranking_dict = {}  # {str(cluster_sorted): coverage_fraction}
+    list_dict = {}     # {str(cluster_sorted): cluster_sorted_list}
 
-    ranking_dict = {}
-    list_dict = {} #map string combos to list combos
-
-    n_residues = len(distance_n_atoms.keys()) #store total number of surface residues
+    n_residues = len(distance_n_atoms.keys())
     rows = []
-    #calculate approximate glycan coverage for each cluster
+
     for cluster in clusters:
         covered_residues = set()
-        #check coverage of each residue in the combination
         for res in cluster:
             for res2, dist in distance_n_atoms[res].items():
                 if dist < radius:
                     covered_residues.add(res2)
-        rank = len(covered_residues)/n_residues if n_residues else 0
-        cluster.sort() #sort for consistent results
-        ranking_dict[str(cluster)] = rank
-        list_dict[str(cluster)] = cluster
-        rows.append([rank, len(covered_residues), n_residues, radius, len(cluster), ";".join(cluster)])
 
-    #sort dictionary by value (ranking, greatest to least)
-    ordered_dict = sorted(ranking_dict.items(), key = lambda x:x[1], reverse=True)
+        cov_count = len(covered_residues)
+        cov_frac = cov_count / n_residues if n_residues else 0.0
+        c_sorted = sorted(cluster)
+        key = str(c_sorted)
 
-    #add clusters to final list while index is below required number of clusters
-    indx = 0
-    for tup in ordered_dict:
-        if int(indx) < int(i):
-            refined_clusters.append(tup[0])
-        else: 
-            break
-        indx+=1
-        
-    final_clusters = []
-    for clust in refined_clusters:
-        final_clusters.append(list_dict[clust])
-    return final_clusters, rows
+        ranking_dict[key] = cov_frac
+        list_dict[key] = c_sorted
+        rows.append([cov_frac, cov_count, n_residues, radius, len(c_sorted), ";".join(c_sorted)])
+
+    # keep top i by coverage
+    ordered = sorted(ranking_dict.items(), key=lambda x: x[1], reverse=True)
+    refined_keys = [k for k, _ in ordered[:int(i)]]
+    refined_clusters = [list_dict[k] for k in refined_keys]
+
+    return refined_clusters, rows
+
    
  
-def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, i, j, initial_r, _log_rows=None, _iter_no=0):
+def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, i, j, initial_r,
+                     _log_rows=None, _iter_no=0): # edited for sampling -TY
     '''
     PURPOSE: iteratively increase radius of overlap to reduce size of combinations in clusters
     and check coverage to reduce number of combinations
@@ -1151,65 +1150,49 @@ def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, 
     Returns
     next_clusters: dict
         Dictionary of {site number: non overlapping sites} with j site numbers, combinations of size i
-    log_rows: list
-        Intermediate coverage scoring rows collected during iterative pruning
    
     '''
+    """
+    Iteratively adjust overlap/coverage and prune. Also logs all coverage_rank
+    scores from every call for later CSV export.
+    """
     if _log_rows is None:
         _log_rows = []
 
-    #check if another iteration is needed by checking i and j
-    print(i)
-    print(j)
+    # compute current sizes
     cur_i = len(clusters)
-    cur_j = 0
-    print(cur_i)
-    #obtain maximum length of clusters
-    for val in clusters:
-        if len(val) > cur_j: #check if lenth of cluster is greater than current max length
-            cur_j = len(val)
-            
-    print(cur_j)
-    #case 1: clusters too large AND too many clusters
-    if  int(cur_i) > int(i) and int(cur_j) > int(j):
-        print('i and j too large',flush=True)
-        print('num clusters: ' + str(cur_i) + ' len clust: ' + str(cur_j))
-        #increase overlap radius
-        new_r = initial_r+1
-        print('new radius: ' + str(new_r))
-        new_clusters_long = reduce_clusters(new_r, siteDistances, clusters, priority_sites)
-        #reduce number of clusters using coverage ranking
-        new_clusters, rows = coverage_rank(distance_n_atoms, new_clusters_long, i, radius=new_r)
-        for row in rows:
-            _log_rows.append([_iter_no] + row)
-        print('new clusters, refined clusters')
-        print(len(new_clusters_long), len(new_clusters), flush=True)
+    cur_j = max((len(val) for val in clusters), default=0)
 
-        next_clusters = iterate_clusters(distance_n_atoms, new_clusters,
-                                        siteDistances, priority_sites, i, j, new_r, _log_rows, _iter_no + 1)
-        
-    elif int(cur_j) > int(j): 
-        #obtain new overlaps with increased overlap radius size
-        print('too many residues in cluster:',flush=True)
-        print('num clusters: ' + str(cur_i) + ' len clust: ' + str(cur_j))
-        new_r = initial_r+1
-        print('new radius: ' + str(new_r))
+    # case 1: too many clusters AND clusters too large -> increase overlap radius and refine
+    if int(cur_i) > int(i) and int(cur_j) > int(j):
+        new_r = initial_r + 1
+        new_clusters_long = reduce_clusters(new_r, siteDistances, clusters, priority_sites)
+        # refine by coverage; LOG everything scored in this call
+        new_clusters, rows = coverage_rank(distance_n_atoms, new_clusters_long, i, radius=new_r)
+        # tag with iteration number and append
+        for r in rows:
+            _log_rows.append([_iter_no] + r)
+        return iterate_clusters(distance_n_atoms, new_clusters, siteDistances, priority_sites,
+                                i, j, new_r, _log_rows, _iter_no + 1)
+
+    # case 2: clusters too large -> increase overlap radius
+    elif int(cur_j) > int(j):
+        new_r = initial_r + 1
         new_clusters = reduce_clusters(new_r, siteDistances, clusters, priority_sites)
-        next_clusters = iterate_clusters(distance_n_atoms, new_clusters,
-                                        siteDistances, priority_sites, i, j, new_r, _log_rows, _iter_no + 1)
-        
-    #case 3: clusters correct size, too many clusters:
+        return iterate_clusters(distance_n_atoms, new_clusters, siteDistances, priority_sites,
+                                i, j, new_r, _log_rows, _iter_no + 1)
+
+    # case 3: correct size but too many clusters -> filter by coverage; LOG everything
     elif int(cur_i) > int(i):
-        print('too many clusters, filtering by coverage: ',flush=True)
-        print('num clusters: ' + str(cur_i) + ' len clust: ' + str(cur_j))
         next_clusters, rows = coverage_rank(distance_n_atoms, clusters, i, radius=initial_r)
-        for row in rows:
-            _log_rows.append([_iter_no] + row)
-        
+        for r in rows:
+            _log_rows.append([_iter_no] + r)
+        return next_clusters, _log_rows
+
+    # case 4: already within targets
     else:
-        next_clusters = clusters
-    
-    return next_clusters, _log_rows
+        return clusters, _log_rows
+
 
 
 def refine_clusters(cluster_list, max_len=0):
@@ -1509,7 +1492,11 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
         
         print(number[i])
         print(size[i])
-        iterate_cl, prune_log_rows = iterate_clusters(d_linear_surf, next_overlaps, siteDistances, priority_sites[i], number[i], size[i], 17.5)
+        iterate_cl, prune_log_rows = iterate_clusters(
+        d_linear_surf, next_overlaps, siteDistances, priority_sites[i],
+        number[i], size[i], 17.5)
+
+        # Write ALL intermediate coverage_rank scores to CSV (one per protein)
         csv_headers = [
             "iteration", "coverage_fraction", "covered_count", "total_surface_residues",
             "radius_A", "num_sites_in_combo", "sites"
@@ -1521,6 +1508,23 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
             writer.writerow(csv_headers)
             writer.writerows(prune_log_rows)
         print(f"Saved intermediate coverage scores: {out_csv_intermediate}", flush=True)
+
+        print('Modeling Glycans')
+        #glycosylate top 10 files
+        final_combos = add_glycans(download_directory, iterate_cl, 'fucosylated_full', surface_sites, destination[i], model_glycans[i])
+        print('Running Initial Ranking',flush=True)
+        #run glyco to score combinations
+        output_dict = {}
+        j = 0
+        n_residues = len(d_linear_surf.keys())
+        
+        import csv
+        with open(out_csv_intermediate, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(csv_headers)
+            writer.writerows(prune_log_rows)
+        print(f"Saved intermediate coverage scores: {out_csv_intermediate}", flush=True)
+        
         print('Modeling Glycans')
         #glycosylate top 10 files
         final_combos = add_glycans(download_directory, iterate_cl, 'fucosylated_full', surface_sites, destination[i], model_glycans[i])
