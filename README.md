@@ -11,10 +11,10 @@ https://hyperimmunise.readthedocs.io/en/latest/
 ## Quick Start
 
 1. Create the conda environment
-
+```bash
 conda env create -f hyperimmunise.yml
 conda activate hyperimmunise
-
+```
 2. Install external dependencies
 
 Download and install the following tools and make note of their absolute paths:
@@ -23,7 +23,7 @@ Download and install the following tools and make note of their absolute paths:
 - Jwalk from XLM-Tools (https://github.com/Topf-Lab/XLM-Tools)
 
 3. Run the example
-
+```bash
 python main.py \
 -netnglyc_loc "ABSOLUTE DIRECTORY OF netNglyc-1.0" \
 -jwalk_loc "ABSOLUTE DIRECTORY OF XLM-Tools/" \
@@ -36,7 +36,7 @@ python main.py \
 -pdb_list "HG_HAhead" \
 -path "ABSOLUTE DIRECTORY OF HyperImmunISE/example/test_HAhead.pdb" \
 -destination "ABSOLUTE DIRECTORY OF target directory"
-
+```
 4. Expected output
 
 The run will generate:
