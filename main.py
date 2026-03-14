@@ -220,7 +220,7 @@ def residue_info(surface_residues, pdb, destination):
             cur_resdict[original_name] = new_id[1]
             i+=1
         jwalk_map[cur_chain] = cur_resdict
-    n.save(destination+'jwalk_protein.pdb')     
+    n.save(os.path.join(destination, 'jwalk_protein.pdb'))     
     return res_dict, res_coords, map_dict, jwalk_map
 
   
@@ -501,7 +501,7 @@ def allSASD(reslist, jwalk_pdbfile, Jwalk_path, jwalk_map):
         
     '''
 
-    aa_file = Jwalk_path + '/aa_inputs.txt'
+    aa_file = os.path.join(Jwalk_path, 'aa_inputs.txt')
     
     #first, translate list of residues to Jwalk pdb file numbering scheme
     newlist = []
@@ -537,7 +537,7 @@ def allSASD(reslist, jwalk_pdbfile, Jwalk_path, jwalk_map):
                      line_indx += 1
     
     #copy pdb file into cd of Jwalk
-    jwalkpdb = Jwalk_path + '/pdbfile.pdb'
+    jwalkpdb = os.path.join(Jwalk_path, 'pdbfile.pdb')
     shutil.copyfile(jwalk_pdbfile, jwalkpdb)
 
     #access terminal to run Jwalk
@@ -545,7 +545,7 @@ def allSASD(reslist, jwalk_pdbfile, Jwalk_path, jwalk_map):
     os.system('python Jwalk.v2.1.py -i pdbfile.pdb -xl_list aa_inputs.txt -max_dist 50')           
     
     #extract distance information from outputted txt file
-    dist_output = Jwalk_path + '/Jwalk_results/pdbfile_crosslink_list.txt'
+    dist_output = os.path.join(Jwalk_path, 'Jwalk_results', 'pdbfile_crosslink_list.txt')
     
     #store distances for pairs of residues
     SASD_dict = {}
@@ -714,7 +714,7 @@ def write_fasta(pdb, destination):
     #create txt file for output
     name = pdb.split('.')[0]
     prot = name.split('/')[-1]
-    filename = destination + prot + '_fasta.txt'
+    filename = os.path.join(destination, prot + '_fasta.txt')
     fasta = open(filename, 'w')
     
     #open pdb file and loop through by chain
@@ -792,7 +792,7 @@ def mutate_fasta(res_to_mutate, allRes, map_dict, mutant_sites, original_fasta, 
         
         
         #create txt file for output
-        filename = destination + 'fasta_' + resnum + '_' + reschain + '.txt'
+        filename = os.path.join(destination, 'fasta_' + resnum + '_' + reschain + '.txt')
         newfile = open(filename, 'w')
         og_file = open(original_fasta, 'r')
         newfile.write('>Chain' + ' ' + chain +'\n')
@@ -830,7 +830,7 @@ def mutate_fasta(res_to_mutate, allRes, map_dict, mutant_sites, original_fasta, 
         indx2 = map_dict[chain][num2]
         
         #create txt file for output
-        filename = destination + 'fasta_' + resnum + '_' + reschain + '.txt'
+        filename = os.path.join(destination, 'fasta_' + resnum + '_' + reschain + '.txt')
         newfile = open(filename, 'w')
         og_file = open(original_fasta, 'r')
         newfile.write('>Chain' + ' ' + chain +'\n')
@@ -1030,7 +1030,7 @@ def surface_quant(pdb, glycopath, residues, all_surface_res,destination):
     
     #copy pdb file into cd of glyco
     
-    glycopdb = glycopath + '/pdbfile.pdb'
+    glycopdb = os.path.join(glycopath, 'pdbfile.pdb')
     #only copy pdb file if it isn't already in path
     if not os.path.exists('glycopdb'):
         shutil.copyfile(pdb, glycopdb)
@@ -1040,13 +1040,13 @@ def surface_quant(pdb, glycopath, residues, all_surface_res,destination):
     os.system('python glyco.py -pdb pdbfile.pdb -cutoff 20 -module sub -glycan BMA,AMA,BGL,NAG,MAN -residue surfaces.txt -out_folder res')
     
     #read output file to obtain result
-    ans_file = glycopath + '/res/pdbfile_sub_glysum.txt'
+    ans_file = os.path.join(glycopath, 'res', 'pdbfile_sub_glysum.txt')
     with open(ans_file, 'r') as sumfile:
         int_string = sumfile.readlines()[0]
         coverage = float(int_string)
     #delete file and results folder to clear for next run (if function will be run again)
     os.remove(ans_file)
-    os.rmdir(glycopath + '/res')
+    os.rmdir(os.path.join(glycopath, 'res'))
 
     return coverage
 
@@ -1369,7 +1369,7 @@ def add_glycans(pdb, combo_list, glycan, native_sites, destination, model_glycan
             GTM.apply(temp_pose)
             
         #output new protein pdb file
-        pdb_name = destination + 'Output_' + str(combo_list.index(combo))+'.pdb'
+        pdb_name = os.path.join(destination, 'Output_' + str(combo_list.index(combo)) + '.pdb')
         temp_pose.dump_pdb(pdb_name)
 
     return updated_combos
