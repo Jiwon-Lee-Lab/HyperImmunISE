@@ -31,6 +31,14 @@ from pyrosetta.rosetta.core.select.residue_selector import ResiduePropertySelect
 from pyrosetta.rosetta.core.chemical import ResidueProperty
 from pyrosetta.rosetta.core.select import get_residues_from_subset
 
+GLYCAN_NAME_ALIASES = {
+    # PyRosetta 2023.x recognizes the preset below; older HyperImmunISE code used
+    # "fucosylated_full", which now expands to an unsupported "fuc" sugar code.
+    'fucosylated_full': 'fucosylated_N-glycan_core',
+}
+
+SUPPORTED_GLYCAN_PRESETS = sorted(set(GLYCAN_NAME_ALIASES.values()))
+
 '''
 BIOPYTHON citation: 
     Hamelryck, T., Manderick, B. (2003) PDB parser and structure class implemented in Python. 
@@ -113,6 +121,16 @@ def surface_residues(pdb, min_SASA=30):
                 surface_residues.append(resID)
                 areaDict[resID] = residueArea.total   
     return surface_residues, areaDict
+
+
+def resolve_glycan_name(glycan):
+    resolved = GLYCAN_NAME_ALIASES.get(glycan, glycan)
+    if resolved != glycan:
+        print(
+            f"Mapped glycan preset '{glycan}' to PyRosetta-compatible preset '{resolved}'.",
+            flush=True,
+        )
+    return resolved
 
 
 def residue_info(surface_residues, pdb, destination):
@@ -1306,6 +1324,7 @@ def add_glycans(pdb, combo_list, glycan, native_sites, destination, model_glycan
     init(" ".join(options.split('\n')))
     
     first_n_sites = [site[0] for site in native_sites]
+    resolved_glycan = resolve_glycan_name(glycan)
     
     base_protein = pose_from_pdb(pdb)
     
@@ -1357,7 +1376,15 @@ def add_glycans(pdb, combo_list, glycan, native_sites, destination, model_glycan
         
         #add glycans
         glycans = SimpleGlycosylateMover()
-        glycans.set_glycosylation(glycan)
+        try:
+            glycans.set_glycosylation(resolved_glycan)
+        except RuntimeError as exc:
+            supported_msg = ', '.join(SUPPORTED_GLYCAN_PRESETS)
+            raise RuntimeError(
+                f"Unable to configure glycan preset '{glycan}' "
+                f"(resolved to '{resolved_glycan}'). "
+                f"Known compatible presets in this build: {supported_msg}."
+            ) from exc
         #loop through sites again, add glycans to each site
         for site in rosetta_combo:
             n_res = ResidueIndexSelector()

@@ -37,6 +37,15 @@ Can I select what types of glycans are added to my designs?
 Currently there is no implementation to allow for different glycans. However, manually editing the "add_glycans()" function and 
 the corresponding library of glycans in pyRosetta can achieve this if needed. 
 
+Why does glycan modelling fail with "Unrecognized sugar 3-letter code 'fuc'"?
+-----------------------------------------------------------------------------
+
+This usually indicates a naming mismatch between the HyperImmunISE glycan preset and the installed PyRosetta carbohydrate database.
+Recent PyRosetta builds may reject the legacy ``fucosylated_full`` preset because it expands to an unsupported ``fuc`` unit.
+
+The current code maps this legacy preset to the PyRosetta-compatible preset ``fucosylated_N-glycan_core`` before glycan modelling.
+If you customize glycans manually, ensure the preset or saccharide sequence is supported by your local PyRosetta database.
+
 What value should I select for defining the desired number of glycans?
 ----------------------------------------------------------------------
 
