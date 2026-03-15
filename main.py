@@ -585,7 +585,7 @@ def calc_overlap(sphere_rad, distances, priority_sites):
         distances,      distance dictionary between coordinate pairs
         priority_sites   list of residues that must be in each combo
 	RETURNS:
-        all_clusters, Dictionary of {site number: non overlapping sites}
+	        all_clusters, nested list of site combinations
     """
     print('START', flush = True)
     all_sites = list(distances.keys())
@@ -1061,8 +1061,8 @@ def coverage_rank(distance_n_atoms, clusters, i, radius = 17.5):
     distance_n_atoms : dictionary of {site: {residue: distance}} using linear
     distance calculation (all surface residues)
        
-    clusters : dict
-        Dictionary of {site number: non overlapping sites}
+    clusters : list
+        Nested list of site combinations.
     
     radius: int
         distance cutoff of nearby residues considered to be covered by glycan
@@ -1072,9 +1072,9 @@ def coverage_rank(distance_n_atoms, clusters, i, radius = 17.5):
     
     Returns
     -------
-    refined_clusters: dict
-    Dictionary of {site number: non overlapping sites} (i.e. combos/clusters)
-    with lower-coverage combinations eliminated
+    refined_clusters: list
+        Nested list of site combinations with lower-coverage combinations
+        eliminated.
     rows: list
         Intermediate coverage scoring rows for each cluster:
         [coverage_fraction, covered_count, total_surface_residues,
@@ -1132,8 +1132,8 @@ def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, 
     priority_sites : list
         list of N residue of user designated priority sites that must be glycosylated
         
-    clusters : dict
-        Dictionary of {site number: non overlapping sites}
+    clusters : list
+        Nested list of site combinations.
     
     
     i: int
@@ -1149,8 +1149,8 @@ def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, 
       distance dictionary between coordinate pairs
     
     Returns
-    next_clusters: dict
-        Dictionary of {site number: non overlapping sites} with j site numbers, combinations of size i
+    next_clusters: list
+        Nested list of site combinations with at most j sites per combination.
     log_rows: list
         Intermediate coverage scoring rows collected during iterative pruning
    
@@ -1185,7 +1185,8 @@ def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, 
         print('new clusters, refined clusters')
         print(len(new_clusters_long), len(new_clusters), flush=True)
 
-        next_clusters = iterate_clusters(distance_n_atoms, new_clusters,
+        next_clusters, _log_rows = iterate_clusters(
+                                        distance_n_atoms, new_clusters,
                                         siteDistances, priority_sites, i, j, new_r, _log_rows, _iter_no + 1)
         
     elif int(cur_j) > int(j): 
@@ -1195,7 +1196,8 @@ def iterate_clusters(distance_n_atoms, clusters, siteDistances, priority_sites, 
         new_r = initial_r+1
         print('new radius: ' + str(new_r))
         new_clusters = reduce_clusters(new_r, siteDistances, clusters, priority_sites)
-        next_clusters = iterate_clusters(distance_n_atoms, new_clusters,
+        next_clusters, _log_rows = iterate_clusters(
+                                        distance_n_atoms, new_clusters,
                                         siteDistances, priority_sites, i, j, new_r, _log_rows, _iter_no + 1)
         
     #case 3: clusters correct size, too many clusters:
