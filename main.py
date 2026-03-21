@@ -12,6 +12,7 @@ import freesasa
 import numpy as np
 import shutil
 import os
+import sys
 import subprocess
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB import PDBIO
@@ -31,13 +32,7 @@ from pyrosetta.rosetta.core.select.residue_selector import ResiduePropertySelect
 from pyrosetta.rosetta.core.chemical import ResidueProperty
 from pyrosetta.rosetta.core.select import get_residues_from_subset
 
-GLYCAN_NAME_ALIASES = {
-    # PyRosetta 2023.x recognizes the preset below; older HyperImmunISE code used
-    # "fucosylated_full", which now expands to an unsupported "fuc" sugar code.
-    'fucosylated_full': 'fucosylated_N-glycan_core',
-}
-
-SUPPORTED_GLYCAN_PRESETS = sorted(set(GLYCAN_NAME_ALIASES.values()))
+GLYCAN_NAME_ALIASES = {}
 
 '''
 BIOPYTHON citation: 
@@ -560,7 +555,7 @@ def allSASD(reslist, jwalk_pdbfile, Jwalk_path, jwalk_map):
 
     #access terminal to run Jwalk
     os.chdir(Jwalk_path)
-    os.system('python Jwalk.v2.1.py -i pdbfile.pdb -xl_list aa_inputs.txt -max_dist 50')           
+    os.system(f'"{sys.executable}" Jwalk.v2.1.py -i pdbfile.pdb -xl_list aa_inputs.txt -max_dist 50')
     
     #extract distance information from outputted txt file
     dist_output = os.path.join(Jwalk_path, 'Jwalk_results', 'pdbfile_crosslink_list.txt')
@@ -1055,7 +1050,7 @@ def surface_quant(pdb, glycopath, residues, all_surface_res,destination):
     
     
     #check if name of results folder is taken, if so iterate up an integer
-    os.system('python glyco.py -pdb pdbfile.pdb -cutoff 20 -module sub -glycan BMA,AMA,BGL,NAG,MAN -residue surfaces.txt -out_folder res')
+    os.system(f'"{sys.executable}" glyco.py -pdb pdbfile.pdb -cutoff 20 -module sub -glycan BMA,AMA,BGL,NAG,MAN -residue surfaces.txt -out_folder res')
     
     #read output file to obtain result
     ans_file = os.path.join(glycopath, 'res', 'pdbfile_sub_glysum.txt')
@@ -1379,11 +1374,17 @@ def add_glycans(pdb, combo_list, glycan, native_sites, destination, model_glycan
         try:
             glycans.set_glycosylation(resolved_glycan)
         except RuntimeError as exc:
-            supported_msg = ', '.join(SUPPORTED_GLYCAN_PRESETS)
+            if GLYCAN_NAME_ALIASES:
+                supported_msg = ', '.join(sorted(set(GLYCAN_NAME_ALIASES.values())))
+                raise RuntimeError(
+                    f"Unable to configure glycan preset '{glycan}' "
+                    f"(resolved to '{resolved_glycan}'). "
+                    f"Known compatibility-mapped presets in this build: {supported_msg}."
+                ) from exc
             raise RuntimeError(
                 f"Unable to configure glycan preset '{glycan}' "
                 f"(resolved to '{resolved_glycan}'). "
-                f"Known compatible presets in this build: {supported_msg}."
+                "PyRosetta rejected the preset name directly."
             ) from exc
         #loop through sites again, add glycans to each site
         for site in rosetta_combo:
