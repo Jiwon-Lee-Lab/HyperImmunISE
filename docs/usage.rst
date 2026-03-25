@@ -153,6 +153,7 @@ Navigate to the AmberTools/src/ folder and run cpptraj:
   $ cpptraj
   $ cd Simulations/
   $ parm <path_to_file>/<filename>.pdb
+  $ loadcrd <path_to_file>/<filename>.pdb MyCrd
   $ prepareforleap crdset MyCrd name Final out <path_to_file>/leap.<filename>.in leapunitname mol pdbout <path_to_file>/<filename>.cpptraj.pdb nowat noh keepaltloc highestocc
   $ quit
 
@@ -334,6 +335,15 @@ The following commands are best run on a computing cluster:
   $ ../bin/sander -O -i minimize.in -o minimize.out -p <filename>_hmr.prmtop -c <filename>.inpcrd -r min.rst7
   $ ../bin/pmemd.cuda -O -i heat.in -o heat.out -p <filename>_hmr.prmtop -c min.rst7 -r heat.rst7 -x heat.nc
   $ ../bin/pmemd.cuda -O -i equilibrate.in -o equilibrate.out -p <filename>_hmr.prmtop -c heat.rst7 -r equilibrate.rst7 -x equilibrate.nc
+
+GPU-based MD simulation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MD simulations can be run on GPU using ``pmemd.cuda``.
+
+For HPC or server-based workflows, enter a GPU node first and verify that the GPU is properly available by running ``nvidia-smi``. This check should be done before launching the simulation.
+
+In some cases, ``pmemd.cuda`` is not included in the installed Amber version. This is common with AmberTools 25. When that happens, load a CUDA environment earlier than version 13, download ``pmemd24.tar.bz2`` from the Amber organization website, build it locally, and use the compiled executable for GPU simulation.
 
 Then load the conda environment which contains a mdtraj environment (install with pip or conda if you don't have it) and run the following:
 
