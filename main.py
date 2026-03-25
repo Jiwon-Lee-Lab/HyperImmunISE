@@ -14,6 +14,7 @@ import shutil
 import os
 import sys
 import subprocess
+from pathlib import Path
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB import PDBIO
 import pyrosetta
@@ -126,6 +127,59 @@ def resolve_glycan_name(glycan):
             flush=True,
         )
     return resolved
+
+
+def validate_no_parentheses_in_paths(arg_name, values):
+    for value in values:
+        if '(' in value or ')' in value:
+            raise Exception(
+                f"Error: {arg_name} cannot contain parentheses: '{value}'. "
+                "Please rename the file or directory and try again."
+            )
+
+
+def get_pyrosetta_common_glycan_dir():
+    pyrosetta_root = Path(pyrosetta.__file__).resolve().parent
+    glycan_dir = pyrosetta_root / 'database' / 'chemical' / 'carbohydrates' / 'common_glycans'
+    if not glycan_dir.is_dir():
+        raise RuntimeError(
+            f"Unable to locate the PyRosetta carbohydrate database at '{glycan_dir}'."
+        )
+    return glycan_dir
+
+
+def assert_required_glycan_registered(glycan):
+    glycan_dir = get_pyrosetta_common_glycan_dir()
+    common_names_file = glycan_dir / 'common_names.txt'
+    iupac_file = glycan_dir / f'{glycan}.iupac'
+
+    if not common_names_file.is_file():
+        raise RuntimeError(
+            f"PyRosetta is missing '{common_names_file}', so glycan preset '{glycan}' cannot be verified."
+        )
+
+    if not iupac_file.is_file():
+        raise RuntimeError(
+            f"PyRosetta does not contain '{iupac_file.name}' in '{glycan_dir}'. "
+            f"Please add the customized glycan file for '{glycan}' before running HyperImmunISE."
+        )
+
+    expected_entry = f"{glycan} {iupac_file.name}"
+    common_names_lines = [line.strip() for line in common_names_file.read_text().splitlines()]
+    registered = False
+    for line in common_names_lines:
+        if not line or line.startswith('#'):
+            continue
+        terms = line.split()
+        if len(terms) >= 2 and terms[0] == glycan and terms[1] == iupac_file.name:
+            registered = True
+            break
+
+    if not registered:
+        raise RuntimeError(
+            f"PyRosetta does not register glycan preset '{glycan}' in '{common_names_file}'. "
+            f"Please add a line matching '{expected_entry}' before running HyperImmunISE."
+        )
 
 
 def residue_info(surface_residues, pdb, destination):
@@ -1316,10 +1370,13 @@ def add_glycans(pdb, combo_list, glycan, native_sites, destination, model_glycan
     -other_pose_to_scorefile
     '''
     
-    init(" ".join(options.split('\n')))
-    
     first_n_sites = [site[0] for site in native_sites]
     resolved_glycan = resolve_glycan_name(glycan)
+
+    if resolved_glycan == 'fucosylated_full':
+        assert_required_glycan_registered(resolved_glycan)
+
+    init(" ".join(options.split('\n')))
     
     base_protein = pose_from_pdb(pdb)
     
@@ -1685,6 +1742,11 @@ if __name__ == "__main__":
 #				raise Exception('The provided file {0} does not exist'.format(f))
 #			fastq_files[-1] = os.path.abspath(f)			
 		argnum += 1	
+	validate_no_parentheses_in_paths("-netnglyc_loc", netnglyc_loc)
+	validate_no_parentheses_in_paths("-jwalk_loc", jwalk_loc)
+	validate_no_parentheses_in_paths("-pdb_list", pdb_list)
+	validate_no_parentheses_in_paths("-path", path)
+	validate_no_parentheses_in_paths("-destination", destination)
 	print(netnglyc_loc, flush = True)
 	print(jwalk_loc, flush = True)
 	print(chain, flush = True)

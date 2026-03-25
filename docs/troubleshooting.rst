@@ -40,16 +40,23 @@ the corresponding library of glycans in pyRosetta can achieve this if needed.
 Why does glycan modelling fail with "Unrecognized sugar 3-letter code 'fuc'"?
 -----------------------------------------------------------------------------
 
-This usually indicates a naming mismatch between the HyperImmunISE glycan preset and the installed PyRosetta carbohydrate database.
-Recent PyRosetta builds may reject the legacy ``fucosylated_full`` preset because it expands to an unsupported ``fuc`` unit.
+This usually indicates a mismatch between the HyperImmunISE glycan preset and the installed PyRosetta carbohydrate database.
+HyperImmunISE now requires the preset ``fucosylated_full`` to exist directly in your local PyRosetta carbohydrate database before glycan modelling starts.
 
-The current code maps this legacy preset to the PyRosetta-compatible preset ``fucosylated_N-glycan_core`` before glycan modelling.
-If you customize glycans manually, ensure the preset or saccharide sequence is supported by your local PyRosetta database.
+To register it manually, add the following entry to ``pyrosetta/database/chemical/carbohydrates/common_glycans/common_names.txt``::
+
+  fucosylated_full  fucosylated_full.iupac
+
+Then create ``pyrosetta/database/chemical/carbohydrates/common_glycans/fucosylated_full.iupac`` with this content::
+
+  b-D-GlcpNAc-(1->2)-a-D-Manp-(1->3)-[a-D-GlcpNAc-(1->2)-a-D-Manp-(1->6)]-b-D-Manp-(1->4)-b-D-GlcpNAc-(1->4)-[a-L-Fucp-(1->6)]-b-D-GlcpNAc-
+
+If either the registration line or the ``.iupac`` file is missing, HyperImmunISE will stop before running PyRosetta.
 
 What value should I select for defining the desired number of glycans?
 ----------------------------------------------------------------------
 
-This value is intended to vary from case to case. The algorithm will require a minimum of 10 angstroms of spacing between glycans and thus the
+This value is intended to vary from case to case. The algorithm will require a minimum of 10 Å of spacing between glycans and thus the
 density of glycans is inherently limited by this. In our experience, molecules of ~25-50kDa can be adequately covered by between 10-20 glycans.
 
 There is not a PDB structure available for my target, can I still use this program?
