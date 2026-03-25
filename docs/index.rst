@@ -19,5 +19,6 @@ Contents
    :maxdepth: 2
   
    usage
+   optimization
    functions
    troubleshooting
