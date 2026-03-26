@@ -818,7 +818,7 @@ def mutate_fasta(res_to_mutate, allRes, map_dict, mutant_sites, original_fasta, 
         allRes: dict of surface residues (number and chain) and corresponding amino acid values
         map_dict : nested dict
             nested dictionary of {chain: {resnum: index}} 
-        destination: path where user wants to send txt file of FASTA seq, should end in '/'
+        destination: path where user wants to send txt file of FASTA seq
         mutant_sites: list of list of sites that can be consensus sequence with mutation
         original_fasta: txt file of fasta seq for original protein sequence
     Returns:
@@ -1508,7 +1508,7 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
         #NETNGLYC ANALYSIS
         #first, write original fasta file with no mutations; obtain netNglyc output
         write_fasta(download_directory,destination[i])
-        fasta_file = destination[i] + prot_name + '_fasta.txt' #naming according to write_fasta function
+        fasta_file = os.path.join(destination[i], prot_name + '_fasta.txt') #naming according to write_fasta function
         initial_sites_all = run_netNglyc_all(fasta_file, resMap, netnglyc_location) 
 
 
@@ -1555,7 +1555,7 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
             mutate_fasta(res, allRes, resMap, mutant_sites, fasta_file, destination[i])
             resnum = res.split()[0]
             reschain = res.split()[1]
-            mutate_file = destination[i] + 'fasta_' + resnum + '_' + reschain + '.txt'
+            mutate_file = os.path.join(destination[i], 'fasta_' + resnum + '_' + reschain + '.txt')
             new_sites = run_netNglyc_chain(mutate_file, resMap, netnglyc_location)
             add_list = [site for site in new_sites if site not in cur_sites and (site in residues or priority_sites[i])]
             #add unique sites to final list
@@ -1565,7 +1565,7 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
                 for add in add_list:
                     cur_sites.append(add)
         #Jwalk distances:
-        dmat = allSASD(cur_sites, destination[i]+'jwalk_protein.pdb', jwalk_location, jwalk_map)
+        dmat = allSASD(cur_sites, os.path.join(destination[i], 'jwalk_protein.pdb'), jwalk_location, jwalk_map)
         siteDistances = {}
         for r1 in cur_sites:
             siteDistances[r1] = {}
@@ -1601,7 +1601,7 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
             "iteration", "coverage_fraction", "covered_count", "total_surface_residues",
             "radius_A", "num_sites_in_combo", "sites"
         ]
-        out_csv_intermediate = destination[i] + f"{prot_name}_coverage_rank_searchTrajectory_scores.csv"
+        out_csv_intermediate = os.path.join(destination[i], f"{prot_name}_coverage_rank_searchTrajectory_scores.csv")
         import csv
         with open(out_csv_intermediate, "w", newline="") as f:
             writer = csv.writer(f)
@@ -1629,7 +1629,7 @@ def process(netnglyc_loc, jwalk_loc, chain, size, number, priority_sites, uncove
             
         for cluster in final_combos:
             covered_residues = []
-            cur_pdb = destination[i] + 'Output_'+ str(j)+'.pdb'
+            cur_pdb = os.path.join(destination[i], 'Output_' + str(j) + '.pdb')
             for res in cluster:
                 for res2, dist in d_linear_surf[res].items():
                     if dist < 15 and res2 not in covered_residues:
