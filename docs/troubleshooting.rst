@@ -75,3 +75,20 @@ Can I run Amber simulations without a GPU?
 
 Yes, Amber simulations can be run without a GPU, however analysis will be slower. This can be accomplished by running the "sander" function instead of "pmemd".
 
+Why can ``Output_0.pdb`` or the selected glycosylation-site combination change between runs?
+---------------------------------------------------------------------------------------------
+
+There are two main reasons this can happen:
+
+1. PyRosetta can introduce stochastic behavior. If glycan modeling or related packing steps are
+   allowed to sample different trajectories, repeated runs can produce different structural
+   outputs even when the same candidate sites are provided.
+2. Earlier versions of the site-selection pipeline did not define a deterministic tie-break rule
+   when multiple candidate combinations received the same coverage score. In that situation, the
+   order of equally scored combinations could vary, and a different combination could be passed
+   downstream to PyRosetta.
+
+If you see output variation, it is reasonable to run the same input more than once to confirm
+whether the top result is stable. If repeated runs converge on the same site combination and
+similar structures, that is a useful sign that the optimization is behaving consistently.
+
